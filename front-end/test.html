@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Assessment Platform</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <!-- Start Assessment -->
+    <div id="assessment" class="my-5">
+        <h2 class="text-center">Online Assessment</h2>
+        <form id="assessmentForm">
+            <div id="questions">
+                <!-- Questions will be injected here -->
+            </div>
+            <div class="text-right">
+                <button type="button" class="btn btn-primary" id="nextBtn">Next</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Scorecard -->
+    <div id="scorecard" class="my-5" style="display: none;">
+        <h2 class="text-center">Scorecard</h2>
+        <p id="scoreMessage"></p>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody id="scoreTableBody">
+                <!-- Score entries will be injected here -->
+            </tbody>
+        </table>
+        <div class="text-center">
+            <button class="btn btn-secondary" id="restartBtn">Restart Assessment</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Questions Array
+const questions = [
+    {
+        question: "What is IoT?",
+        options: [
+            "Introduction of Telecommunication",
+            "Internet of Things",
+            "Internet of Technology",
+            "None of the above"
+        ],
+        answer: 1
+    },
+    {
+        question: "Which protocol is commonly used in IoT?",
+        options: [
+            "HTTP",
+            "MQTT",
+            "FTP",
+            "SMTP"
+        ],
+        answer: 1
+    },
+    {
+        question: "What does MQTT stand for?",
+        options: [
+            "Message Queue Telemetry Transport",
+            "Message Queue Transport Technology",
+            "Multimedia Queue Telemetry Transport",
+            "Multi-Queue Transport Technology"
+        ],
+        answer: 0
+    },
+    {
+        question: "What is the main purpose of IoT?",
+        options: [
+            "To connect devices",
+            "To improve internet speed",
+            "To create web applications",
+            "To enhance video streaming"
+        ],
+        answer: 0
+    },
+    {
+        question: "Which device is an example of IoT?",
+        options: [
+            "Smartphone",
+            "Laptop",
+            "Smart thermostat",
+            "Desktop computer"
+        ],
+        answer: 2
+    }
+];
+
+// Variables
+let currentQuestionIndex = 0;
+let score = 0;
+let studentName = '';
+const completedStudents = new Set(); // To track completed students
+
+// Display questions
+function displayQuestions() {
+    const questionsContainer = $('#questions');
+    questions.forEach((q, index) => {
+        questionsContainer.append(`
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>${index + 1}. ${q.question}</h5>
+                </div>
+                <div class="card-body">
+                    ${q.options.map((option, i) => `
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="question${index}" id="question${index}option${i}" value="${i}">
+                            <label class="form-check-label" for="question${index}option${i}">
+                                ${option}
+                            </label>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `);
+    });
+}
+
+// Show scorecard
+function showScorecard() {
+    $('#scoreMessage').text(`${studentName}, your score is: ${score} out of ${questions.length}`);
+    $('#scorecard').show();
+    $('#assessment').hide();
+}
+
+// Add score to table
+function addScoreToTable() {
+    $('#scoreTableBody').append(`<tr><td>${studentName}</td><td>${score}</td></tr>`);
+}
+
+// Handle Next Button Click
+$('#nextBtn').on('click', function () {
+    if (currentQuestionIndex < questions.length) {
+        const selectedOption = $(`input[name="question${currentQuestionIndex}"]:checked`);
+        if (selectedOption.length === 0) {
+            alert("Please answer the question.");
+            return;
+        }
+        const answer = parseInt(selectedOption.val());
+        if (answer === questions[currentQuestionIndex].answer) {
+            score++;
+        }
+        currentQuestionIndex++;
+        
+        if (currentQuestionIndex === questions.length) {
+            showScorecard();
+            addScoreToTable();
+            completedStudents.add(studentName); // Mark the student as completed
+        } else {
+            $(`#assessmentForm`).find('.card').hide();
+            $(`#assessmentForm`).find(`.card:eq(${currentQuestionIndex})`).show();
+        }
+    }
+});
+
+// Restart Assessment
+$('#restartBtn').on('click', function () {
+    currentQuestionIndex = 0;
+    score = 0;
+
+    // Prompt for student name and check if already completed
+    studentName = prompt("Enter your name:");
+    if (completedStudents.has(studentName)) {
+        alert("You have already completed the assessment.");
+        return;
+    }
+    
+    $('#scorecard').hide();
+    $('#assessment').show();
+    $('#questions').empty();
+    displayQuestions();
+});
+
+// Prompt for student name
+$(document).ready(function () {
+    studentName = prompt("Enter your name:");
+    if (completedStudents.has(studentName)) {
+        alert("You have already completed the assessment.");
+        window.location.reload(); // Reload the page if the student has already taken the assessment
+    } else {
+        displayQuestions();
+    }
+});
+
+</script>
+</body>
+</html>
